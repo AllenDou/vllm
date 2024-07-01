@@ -16,6 +16,7 @@ def run():
     model_name_or_path = "BAAI/bge-reranker-base"
     cache_dir = None
     max_length = 512
+    import pdb; pdb.set_trace()
     llm = LLM(
         model=model_name_or_path,
         #image_input_type="pixel_values",
@@ -38,8 +39,6 @@ def run():
         max_length=max_length,
     ).to("cuda")
 
-    import pdb
-    pdb.set_trace()
     outputs = llm.generate({
         "prompt": prompt,
         #"multi_modal_data": ImagePixelData(image),
