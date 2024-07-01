@@ -111,3 +111,41 @@ class ImageFeaturePlugin(MultiModalPlugin[ImageFeatureData]):
         image_features = data.image_features.to(model_config.dtype)
 
         return {"image_features": image_features}
+
+
+class BgeData(MultiModalData):
+    """
+    The feature vector of an image, passed directly to the model.
+
+    This should be the output of the vision tower.
+    """
+
+    def __init__(self, data: Dict[str, torch.Tensor]) -> None:
+        self.bgedata = data
+
+    def __repr__(self) -> str:
+        #image_features = self.image_features
+
+        #return (f"{type(self).__name__}(image_features=torch.Tensor(shape="
+        #        f"{image_features.shape}, dtype={image_features.dtype}))")
+        bgedata = self.bgedata
+
+        return (
+            f"{type(self).__name__}(input_ids=torch.Tensor(shape="
+            f"{bgedata['input_ids'].shape}, dtype={bgedata['input_ids'].dtype}))"
+        )
+
+
+class BgePlugin(MultiModalPlugin[BgeData]):
+
+    def get_data_type(self) -> Type[BgeData]:
+        return BgeData
+
+    def _default_input_mapper(self, ctx: InputContext,
+                              data: BgeData) -> Dict[str, torch.Tensor]:
+        model_config = ctx.model_config
+        #image_features = data.image_features.to(model_config.dtype)
+        input_ids = torch.Tensor([1, 2, 3]).to(model_config.dtype)
+        attention_mask = torch.Tensor([4, 5, 6]).to(model_config.dtype)
+
+        return {"input_ids": input_ids, "attention_mask": attention_mask}

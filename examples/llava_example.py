@@ -54,6 +54,8 @@ def run_llava_image_features():
 
     image: torch.Tensor = torch.load("images/stop_sign_image_features.pt")
 
+    import pdb
+    pdb.set_trace()
     outputs = llm.generate({
         "prompt": prompt,
         "multi_modal_data": ImageFeatureData(image),

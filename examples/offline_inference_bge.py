@@ -1,4 +1,3 @@
-
 import argparse
 import os
 import subprocess
@@ -11,6 +10,7 @@ from typing import Union, List, Tuple, Any
 from vllm import LLM
 from vllm.multimodal.image import ImageFeatureData, ImagePixelData, BgeData
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForSequenceClassification, is_torch_npu_available
+
 
 def run():
     model_name_or_path = "BAAI/bge-reranker-base"
@@ -28,7 +28,8 @@ def run():
     prompt = "this is a Bge reranker call."
     sentence_pairs: Union[List[Tuple[str, str]], Tuple[str, str]] = \
         [("hello world", "nice to meet you"), ("yes", "no")]
-    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, cache_dir=cache_dir)
+    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path,
+                                              cache_dir=cache_dir)
     inputs = tokenizer(
         sentence_pairs,
         padding=True,
@@ -37,7 +38,8 @@ def run():
         max_length=max_length,
     ).to("cuda")
 
-    import pdb; pdb.set_trace()
+    import pdb
+    pdb.set_trace()
     outputs = llm.generate({
         "prompt": prompt,
         #"multi_modal_data": ImagePixelData(image),
@@ -48,8 +50,10 @@ def run():
         generated_text = o.outputs[0].text
         print(generated_text)
 
+
 def main(args):
     run()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Demo on BGE reranker")

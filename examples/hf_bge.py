@@ -1,7 +1,10 @@
-
 from FlagEmbedding import FlagReranker
-reranker = FlagReranker('BAAI/bge-reranker-base', use_fp16=True) # Setting use_fp16 to True speeds up computation with a slight performance degradation
-score = reranker.compute_score([('hello world', 'nice to meet you'), ("yes","no")])
+
+reranker = FlagReranker(
+    'BAAI/bge-reranker-base', use_fp16=True
+)  # Setting use_fp16 to True speeds up computation with a slight performance degradation
+score = reranker.compute_score([('hello world', 'nice to meet you'),
+                                ("yes", "no")])
 print(score)
 del reranker
 
@@ -16,12 +19,16 @@ max_length = 512
 
 sentence_pairs: Union[List[Tuple[str, str]], Tuple[str, str]] = \
     [("hello world", "nice to meet you"), ("yes", "no")]
-tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, cache_dir=cache_dir)
+tokenizer = AutoTokenizer.from_pretrained(model_name_or_path,
+                                          cache_dir=cache_dir)
 # XLMRobertaForSequenceClassification
-model = AutoModelForSequenceClassification.from_pretrained(model_name_or_path, cache_dir=cache_dir)
+model = AutoModelForSequenceClassification.from_pretrained(model_name_or_path,
+                                                           cache_dir=cache_dir)
 model = model.to("cuda")
 model.eval()
-import pdb; pdb.set_trace()
+import pdb
+
+pdb.set_trace()
 
 #tokenizer.encode()
 inputs = tokenizer(

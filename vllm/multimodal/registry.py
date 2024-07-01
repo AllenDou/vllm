@@ -8,7 +8,7 @@ from vllm.logger import init_logger
 
 from .base import MultiModalData, MultiModalInputMapper, MultiModalPlugin
 from .image import (ImageFeatureData, ImageFeaturePlugin, ImagePixelData,
-                    ImagePixelPlugin)
+                    ImagePixelPlugin, BgeData, BgePlugin)
 
 logger = init_logger(__name__)
 
@@ -22,7 +22,7 @@ class MultiModalRegistry:
     according to its modality and the target model.
     """
 
-    DEFAULT_PLUGINS = (ImageFeaturePlugin(), ImagePixelPlugin())
+    DEFAULT_PLUGINS = (ImageFeaturePlugin(), ImagePixelPlugin(), BgePlugin())
 
     def __init__(
         self,
@@ -85,6 +85,17 @@ class MultiModalRegistry:
         See :meth:`MultiModalPlugin.register_input_mapper` for more details.
         """
         return self.register_input_mapper(ImageFeatureData, mapper)
+
+    def register_bge_input_mapper(
+        self,
+        mapper: Optional[MultiModalInputMapper[BgeData]] = None,
+    ):
+        """
+        Register an input mapper for image feature data to a model class.
+
+        See :meth:`MultiModalPlugin.register_input_mapper` for more details.
+        """
+        return self.register_input_mapper(BgeData, mapper)
 
     def map_input(self, model_config: ModelConfig, data: MultiModalData):
         """
