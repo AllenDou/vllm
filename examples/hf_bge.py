@@ -17,17 +17,23 @@ model = AutoModelForSequenceClassification.from_pretrained(model_name_or_path,
 model = model.to("cuda")
 model.eval()
 
-inputs = tokenizer(
-    sentence_pairs,
-    padding=True,
-    truncation=True,
-    return_tensors='pt',
-    max_length=max_length,
-).to("cuda")
+import time
+starttime = time.time()
+for i in range(100):
 
-all_scores = []
-with torch.no_grad():
-    logits = model(**inputs, return_dict=True).logits
-    scores = logits.view(-1, ).float()
-    all_scores.extend(scores.cpu().numpy().tolist())
-print(all_scores)
+    inputs = tokenizer(
+        sentence_pairs,
+        padding=True,
+        truncation=True,
+        return_tensors='pt',
+        max_length=max_length,
+    ).to("cuda")
+
+    all_scores = []
+    with torch.no_grad():
+        logits = model(**inputs, return_dict=True).logits
+        scores = logits.view(-1, ).float()
+        all_scores.extend(scores.cpu().numpy().tolist())
+    #print(all_scores)
+endtime = time.time()
+print(endtime - starttime)
