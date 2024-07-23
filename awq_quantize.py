@@ -1,8 +1,10 @@
 from awq import AutoAWQForCausalLM
 from transformers import AutoTokenizer
 
-model_path = 'lmsys/vicuna-7b-v1.5'
-quant_path = 'vicuna-7b-v1.5-awq'
+#model_path = 'lmsys/vicuna-7b-v1.5'
+#quant_path = 'vicuna-7b-v1.5-awq'
+model_path = 'Qwen/Qwen1.5-32B'
+quant_path = 'Qwen/Qwen1.5-32B-awq'
 quant_config = { "zero_point": True, "q_group_size": 128, "w_bit": 4, "version": "GEMM" }
 
 # Load model
