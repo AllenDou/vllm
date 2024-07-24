@@ -1,0 +1,7 @@
+
+IMAGE=registry.cn-huhehaote.aliyuncs.com/dsexperiment/vllm-inner:latest
+docker run -it --gpus all $IMAGE /bin/bash
+
+cd examples/
+python3 offline_inference_xlmroberta.py
+python3 hf_bge.py
