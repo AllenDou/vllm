@@ -1,3 +1,7 @@
-DOCKER_BUILDKIT=1 docker build . --target vllm-openai --tag vllm/vllm-openai --build-arg max_jobs=12 --build-arg nvcc_threads=2
-# docker run -it --entrypoint=""  --gpus all vllm/vllm-openai:latest /bin/bash
+#!/bin/bash
+IMAGE=registry.cn-huhehaote.aliyuncs.com/dsexperiment/vllm-openai:latest
+DOCKER_BUILDKIT=1 docker build . --target vllm-openai --tag $IMAGE --build-arg max_jobs=12 --build-arg nvcc_threads=2
+docker push $IMAGE
+
+# docker run -it --gpus all $IMAGE /bin/bash
 
