@@ -1,5 +1,5 @@
 #!/bin/bash
-IMAGE=registry.cn-huhehaote.aliyuncs.com/dsexperiment/vllm-inner:latest
+IMAGE=registry.cn-beijing.aliyuncs.com/dsexperiment/vllm-inner:latest
 DOCKER_BUILDKIT=1 docker build . --target vllm-openai --tag $IMAGE --build-arg max_jobs=12 --build-arg nvcc_threads=2
 docker push $IMAGE
 
