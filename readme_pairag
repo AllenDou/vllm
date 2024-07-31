@@ -14,6 +14,6 @@ cd examples/
 python3 hf_bge.py
 
 # 1. run BAAI/bge-reranker-base under vllm mode
-# 2/3 same as ablove
+# 2/3 same as above
 python3 offline_inference_xlmroberta.py
 
