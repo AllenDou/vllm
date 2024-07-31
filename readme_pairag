@@ -1,7 +1,17 @@
+#
 
-IMAGE=registry.cn-huhehaote.aliyuncs.com/dsexperiment/vllm-inner:latest
+IMAGE=registry.cn-beijing.aliyuncs.com/dsexperiment/vllm-inner:latest
 docker run -it --gpus all $IMAGE /bin/bash
 
+# 确认gpu工作正常
+nvidia-smi
+
+# 进入 examples目录
 cd examples/
-python3 offline_inference_xlmroberta.py
+
+# 原生方式 运行 BAAI/bge-reranker-base, 数据是pairag真实数据, 打印结果是运行时间
 python3 hf_bge.py
+
+# vllm方式运行 BAAI/bge-reranker-base, 数据是pairag真实数据, 打印结果是运行时间
+python3 offline_inference_xlmroberta.py
+
