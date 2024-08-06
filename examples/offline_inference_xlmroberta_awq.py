@@ -4,8 +4,9 @@ from transformers import AutoTokenizer
 
 from vllm import LLM
 
-model = "BAAI/bge-reranker-base"
-llm = LLM(model=model, tensor_parallel_size=1)
+#model = "BAAI/bge-reranker-base"
+model = "/root/bge-reranker-base-awq"
+llm = LLM(model=model, tensor_parallel_size=1, quantization="awq")
 
 prompt = "this is a useless prompt."
 sentence_pairs: Union[List[Tuple[str, str]], Tuple[str, str]] = \
