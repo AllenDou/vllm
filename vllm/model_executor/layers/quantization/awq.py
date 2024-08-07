@@ -96,6 +96,8 @@ class AWQLinearMethod(LinearMethodBase):
 
         output_size_per_partition = sum(output_partition_sizes)
         if output_size_per_partition % self.quant_config.pack_factor != 0:
+            import pdb
+            pdb.set_trace()
             raise ValueError(
                 "The output size is not aligned with the quantized "
                 "weight shape. This can be caused by too large "

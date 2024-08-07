@@ -128,7 +128,10 @@ class XLMRobertaEmbeddings(nn.Module):
 
 class XLMRobertaSelfAttention(nn.Module):
 
-    def __init__(self, config, position_embedding_type=None):
+    def __init__(self,
+                 config,
+                 quant_config: Optional[QuantizationConfig] = None,
+                 position_embedding_type=None):
         super().__init__()
         if config.hidden_size % config.num_attention_heads != 0 and not hasattr(
                 config, "embedding_size"):
@@ -158,7 +161,7 @@ class XLMRobertaSelfAttention(nn.Module):
             self.attention_head_size,
             self.num_attention_heads,
             bias=True,
-            quant_config=None,
+            quant_config=quant_config,
         )
 
     def transpose_for_scores(self, x: torch.Tensor) -> torch.Tensor:
@@ -267,13 +270,17 @@ class XLMRobertaSelfAttention(nn.Module):
 
 class XLMRobertaSelfOutput(nn.Module):
 
-    def __init__(self, config):
+    def __init__(
+        self,
+        config,
+        quant_config: Optional[QuantizationConfig] = None,
+    ):
         super().__init__()
         self.dense = RowParallelLinear(
             config.hidden_size,
             config.hidden_size,
             bias=True,
-            quant_config=None,
+            quant_config=quant_config,
         )
         self.LayerNorm = nn.LayerNorm(config.hidden_size,
                                       eps=config.layer_norm_eps)
@@ -292,12 +299,17 @@ XLM_ROBERTA_SELF_ATTENTION_CLASSES = {
 
 class XLMRobertaAttention(nn.Module):
 
-    def __init__(self, config, position_embedding_type=None):
+    def __init__(self,
+                 config,
+                 quant_config: Optional[QuantizationConfig] = None,
+                 position_embedding_type=None):
         super().__init__()
         self.self = XLM_ROBERTA_SELF_ATTENTION_CLASSES[
             config._attn_implementation](
-                config, position_embedding_type=position_embedding_type)
-        self.output = XLMRobertaSelfOutput(config)
+                config,
+                quant_config=quant_config,
+                position_embedding_type=position_embedding_type)
+        self.output = XLMRobertaSelfOutput(config, quant_config=quant_config)
         self.pruned_heads = set()
 
     def prune_heads(self, heads):
@@ -347,13 +359,17 @@ class XLMRobertaAttention(nn.Module):
 
 class XLMRobertaIntermediate(nn.Module):
 
-    def __init__(self, config):
+    def __init__(
+        self,
+        config,
+        quant_config: Optional[QuantizationConfig] = None,
+    ):
         super().__init__()
         self.dense = ColumnParallelLinear(
             config.hidden_size,
             config.intermediate_size,
             bias=True,
-            quant_config=None,
+            quant_config=quant_config,
         )
         if isinstance(config.hidden_act, str):
             self.intermediate_act_fn = ACT2FN[config.hidden_act]
@@ -368,13 +384,17 @@ class XLMRobertaIntermediate(nn.Module):
 
 class XLMRobertaOutput(nn.Module):
 
-    def __init__(self, config):
+    def __init__(
+        self,
+        config,
+        quant_config: Optional[QuantizationConfig] = None,
+    ):
         super().__init__()
         self.dense = RowParallelLinear(
             config.intermediate_size,
             config.hidden_size,
             bias=True,
-            quant_config=None,
+            quant_config=quant_config,
         )
         self.LayerNorm = nn.LayerNorm(config.hidden_size,
                                       eps=config.layer_norm_eps)
@@ -388,11 +408,15 @@ class XLMRobertaOutput(nn.Module):
 
 class XLMRobertaLayer(nn.Module):
 
-    def __init__(self, config):
+    def __init__(
+        self,
+        config,
+        quant_config: Optional[QuantizationConfig] = None,
+    ):
         super().__init__()
         self.chunk_size_feed_forward = config.chunk_size_feed_forward
         self.seq_len_dim = 1
-        self.attention = XLMRobertaAttention(config)
+        self.attention = XLMRobertaAttention(config, quant_config=quant_config)
         self.is_decoder = config.is_decoder
         self.add_cross_attention = config.add_cross_attention
         if self.add_cross_attention:
@@ -400,9 +424,12 @@ class XLMRobertaLayer(nn.Module):
                 raise ValueError(f"{self} should be used as a decoder model"
                                  "if cross attention is added")
             self.crossattention = XLMRobertaAttention(
-                config, position_embedding_type="absolute")
-        self.intermediate = XLMRobertaIntermediate(config)
-        self.output = XLMRobertaOutput(config)
+                config,
+                quant_config=quant_config,
+                position_embedding_type="absolute")
+        self.intermediate = XLMRobertaIntermediate(config,
+                                                   quant_config=quant_config)
+        self.output = XLMRobertaOutput(config, quant_config=quant_config)
 
     def forward(
         self,
@@ -480,11 +507,17 @@ class XLMRobertaLayer(nn.Module):
 
 class XLMRobertaEncoder(nn.Module):
 
-    def __init__(self, config):
+    def __init__(
+        self,
+        config,
+        quant_config: Optional[QuantizationConfig] = None,
+    ):
         super().__init__()
         self.config = config
-        self.layer = nn.ModuleList(
-            [XLMRobertaLayer(config) for _ in range(config.num_hidden_layers)])
+        self.layer = nn.ModuleList([
+            XLMRobertaLayer(config, quant_config=quant_config)
+            for _ in range(config.num_hidden_layers)
+        ])
         self.gradient_checkpointing = False
 
     def forward(
@@ -523,27 +556,15 @@ class XLMRobertaEncoder(nn.Module):
             past_key_value = past_key_values[
                 i] if past_key_values is not None else None
 
-            if self.gradient_checkpointing and self.training:
-                layer_outputs = self._gradient_checkpointing_func(
-                    layer_module.__call__,
-                    hidden_states,
-                    attention_mask,
-                    layer_head_mask,
-                    encoder_hidden_states,
-                    encoder_attention_mask,
-                    past_key_value,
-                    output_attentions,
-                )
-            else:
-                layer_outputs = layer_module(
-                    hidden_states,
-                    attention_mask,
-                    layer_head_mask,
-                    encoder_hidden_states,
-                    encoder_attention_mask,
-                    past_key_value,
-                    output_attentions,
-                )
+            layer_outputs = layer_module(
+                hidden_states,
+                attention_mask,
+                layer_head_mask,
+                encoder_hidden_states,
+                encoder_attention_mask,
+                past_key_value,
+                output_attentions,
+            )
 
             hidden_states = layer_outputs[0]
             if use_cache:
@@ -621,12 +642,15 @@ class XLMRobertaPreTrainedModel(PreTrainedModel):
 
 class XLMRobertaModel(XLMRobertaPreTrainedModel):
 
-    def __init__(self, config, add_pooling_layer=True):
+    def __init__(self,
+                 config,
+                 quant_config: Optional[QuantizationConfig] = None,
+                 add_pooling_layer=True):
         super().__init__(config)
         self.config = config
 
         self.embeddings = XLMRobertaEmbeddings(config)
-        self.encoder = XLMRobertaEncoder(config)
+        self.encoder = XLMRobertaEncoder(config, quant_config=quant_config)
 
         self.pooler = XLMRobertaPooler(config) if add_pooling_layer else None
 
@@ -798,9 +822,13 @@ class XLMRobertaForSequenceClassification(XLMRobertaPreTrainedModel):
         super().__init__(config)
         self.num_labels = config.num_labels
         self.config = config
+        self.quant_config = quant_config
 
-        self.roberta = XLMRobertaModel(config, add_pooling_layer=False)
-        self.classifier = XLMRobertaClassificationHead(config)
+        self.roberta = XLMRobertaModel(config,
+                                       quant_config=quant_config,
+                                       add_pooling_layer=False)
+        self.classifier = XLMRobertaClassificationHead(config,
+                                                       quant_config=None)
 
         # Initialize weights and apply final processing
         #self.post_init()
@@ -866,6 +894,10 @@ class XLMRobertaForSequenceClassification(XLMRobertaPreTrainedModel):
                 # Skip loading extra bias for GPTQ models.
                 if name.endswith(".bias") and name not in params_dict:
                     continue
+                if name not in params_dict:
+                    import pdb
+                    pdb.set_trace()
+                    print("rrr")
                 param = params_dict[name]
                 weight_loader = param.weight_loader
                 weight_loader(param, loaded_weight, shard_id)
@@ -876,6 +908,10 @@ class XLMRobertaForSequenceClassification(XLMRobertaPreTrainedModel):
                     continue
                 if name.endswith(".position_ids") and name not in params_dict:
                     continue
+                if name not in params_dict:
+                    import pdb
+                    pdb.set_trace()
+                    print("www")
                 param = params_dict[name]
                 weight_loader = getattr(param, "weight_loader",
                                         default_weight_loader)
@@ -885,7 +921,11 @@ class XLMRobertaForSequenceClassification(XLMRobertaPreTrainedModel):
 class XLMRobertaClassificationHead(nn.Module):
     """Head for sentence-level classification tasks."""
 
-    def __init__(self, config):
+    def __init__(
+        self,
+        config,
+        quant_config: Optional[QuantizationConfig] = None,
+    ):
         super().__init__()
         self.dense = ColumnParallelLinear(
             config.hidden_size,
