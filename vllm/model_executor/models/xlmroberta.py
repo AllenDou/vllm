@@ -827,8 +827,8 @@ class XLMRobertaForSequenceClassification(XLMRobertaPreTrainedModel):
         self.roberta = XLMRobertaModel(config,
                                        quant_config=quant_config,
                                        add_pooling_layer=False)
-        self.classifier = XLMRobertaClassificationHead(config,
-                                                       quant_config=None)
+        self.classifier = XLMRobertaClassificationHead(
+            config, quant_config=quant_config)
 
         # Initialize weights and apply final processing
         #self.post_init()
@@ -894,10 +894,6 @@ class XLMRobertaForSequenceClassification(XLMRobertaPreTrainedModel):
                 # Skip loading extra bias for GPTQ models.
                 if name.endswith(".bias") and name not in params_dict:
                     continue
-                if name not in params_dict:
-                    import pdb
-                    pdb.set_trace()
-                    print("rrr")
                 param = params_dict[name]
                 weight_loader = param.weight_loader
                 weight_loader(param, loaded_weight, shard_id)
@@ -908,10 +904,6 @@ class XLMRobertaForSequenceClassification(XLMRobertaPreTrainedModel):
                     continue
                 if name.endswith(".position_ids") and name not in params_dict:
                     continue
-                if name not in params_dict:
-                    import pdb
-                    pdb.set_trace()
-                    print("www")
                 param = params_dict[name]
                 weight_loader = getattr(param, "weight_loader",
                                         default_weight_loader)
