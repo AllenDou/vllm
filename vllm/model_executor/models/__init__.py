@@ -107,10 +107,11 @@ _SIMPLE_MODEL_MAX_NUM_BATCHED_TOKENS = 32768
 
 class ModelMode(enum.Enum):
     """
-    1. DECODER: decoder model
-    2. ENCODER: encoder model
-    3. EMBEDDING: embedding model
-    4. SIMPLE: simple model, like XLMRoberta*
+    1. DECODER: decoder model, like GPT2*
+    2. ENCODER: encoder model, like BERT*
+    3. EMBEDDING: embedding model, like MistralModel
+    4. ENCODER_DECODER: encoder-decoder model, like BART*
+    5. SIMPLE: simple model, like XLMRoberta*
     """
     DECODER = enum.auto()
     ENCODER = enum.auto()
