@@ -6,6 +6,7 @@ import time
 from typing import Callable, Iterable, List, Tuple
 
 import torch
+import torch.nn.functional as F
 import torch.utils.benchmark as TBenchmark
 from torch.utils.benchmark import Measurement as TMeasurement
 from weight_shapes import WEIGHT_SHAPES
@@ -139,6 +140,11 @@ def bench_fp8(dtype: torch.dtype, m: int, k: int, n: int, label: str,
         bench_fn(label, sub_label, "pytorch_bf16_bf16_bf16_matmul-no-scales",
                  torch.mm, a.to(dtype=torch.bfloat16, device="cuda"),
                  b.to(dtype=torch.bfloat16, device="cuda")))
+
+    timers.append(
+        bench_fn(label, sub_label, "F_linear_bf16_bf16_bf16-bias", F.linear,
+                 a.to(dtype=torch.bfloat16, device="cuda"),
+                 b.to(dtype=torch.bfloat16, device="cuda").t(), bias))
 
     # pytorch impl: bf16 output, without fp8 fast accum
     timers.append(
