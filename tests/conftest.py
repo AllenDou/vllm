@@ -6,8 +6,8 @@ import sys
 import tempfile
 from collections import UserList
 from enum import Enum
-from typing import (Any, Callable, Dict, List, Optional, Sequence, Tuple, TypedDict,
-                    TypeVar, Union)
+from typing import (Any, Callable, Dict, List, Optional, Sequence, Tuple,
+                    TypedDict, TypeVar, Union)
 
 import pytest
 import torch
