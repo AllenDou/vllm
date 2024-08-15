@@ -1,0 +1,19 @@
+#
+# obtain acr username & password from @zixiao if denied
+IMAGE=registry.cn-beijing.aliyuncs.com/dsexperiment/vllm-inner:latest
+docker run -it --gpus all $IMAGE /bin/bash
+
+# check gpu is working
+nvidia-smi
+
+cd examples/
+
+# 1. run BAAI/bge-reranker-base under transformers mode
+# 2. real pairag data from @feiyue
+# 3. total time elapsed as result
+python3 hf_bge.py
+
+# 1. run BAAI/bge-reranker-base under vllm mode
+# 2/3 same as above
+python3 offline_inference_xlmroberta.py
+
