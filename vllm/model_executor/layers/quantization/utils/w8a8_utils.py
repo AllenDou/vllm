@@ -133,12 +133,24 @@ def apply_fp8_linear(
             use_per_token_if_dynamic=use_per_token_if_dynamic)
 
         # Fused GEMM_DQ
-        return ops.cutlass_scaled_mm(qinput,
-                                     weight,
-                                     out_dtype=input.dtype,
-                                     scale_a=x_scale,
-                                     scale_b=weight_scale,
-                                     bias=bias)
+        if True:
+            ret, _ = torch._scaled_mm(qinput,
+                                   weight,
+                                   scale_a=x_scale,
+                                   scale_b=weight_scale,
+                                   out_dtype=input.dtype, bias=bias)
+            #import pdb; pdb.set_trace()
+            #ret = ret + bias
+            return ret
+        else:
+            ret = ops.cutlass_scaled_mm(qinput,
+                                         weight,
+                                         out_dtype=input.dtype,
+                                         scale_a=x_scale,
+                                         scale_b=weight_scale,
+                                         bias=bias)
+            import pdb; pdb.set_trace()
+            return ret #float16
 
     # torch.scaled_mm supports per tensor weights + activations only
     # so fallback to naive if per channel or per token

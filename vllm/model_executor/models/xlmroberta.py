@@ -23,6 +23,8 @@ from vllm.model_executor.layers.linear import (ColumnParallelLinear,
                                                RowParallelLinear)
 from vllm.model_executor.layers.quantization.base_config import (
     QuantizationConfig)
+from vllm.model_executor.layers.vocab_parallel_embedding import (
+    VocabParallelEmbedding)
 from vllm.model_executor.model_loader.weight_utils import default_weight_loader
 from vllm.multimodal import MULTIMODAL_REGISTRY
 from vllm.sequence import SimpleOutput, SimpleSequenceGroupOutput
@@ -36,15 +38,29 @@ class XLMRobertaEmbeddings(nn.Module):
     """
 
     # Copied from transformers.models.bert.modeling_bert.BertEmbeddings.__init__
-    def __init__(self, config):
+    def __init__(
+        self,
+        config,
+        quant_config: Optional[QuantizationConfig] = None,
+    ):
         super().__init__()
-        self.word_embeddings = nn.Embedding(config.vocab_size,
-                                            config.hidden_size,
-                                            padding_idx=config.pad_token_id)
-        self.position_embeddings = nn.Embedding(config.max_position_embeddings,
-                                                config.hidden_size)
-        self.token_type_embeddings = nn.Embedding(config.type_vocab_size,
-                                                  config.hidden_size)
+        #self.word_embeddings = nn.Embedding(config.vocab_size,
+        #                                    config.hidden_size,
+        #                                    padding_idx=config.pad_token_id)
+        #self.position_embeddings = nn.Embedding(config.max_position_embeddings,
+        #                                        config.hidden_size)
+        #self.token_type_embeddings = nn.Embedding(config.type_vocab_size,
+        #                                          config.hidden_size)
+        self.word_embeddings = VocabParallelEmbedding(
+            config.vocab_size, config.hidden_size, quant_config=quant_config)
+        self.position_embeddings = VocabParallelEmbedding(
+            config.max_position_embeddings,
+            config.hidden_size,
+            quant_config=quant_config)
+        self.token_type_embeddings = VocabParallelEmbedding(
+            config.type_vocab_size,
+            config.hidden_size,
+            quant_config=quant_config)
 
         # self.LayerNorm is not snake-cased to stick with TensorFlow model
         # variable name and be able to load any TensorFlow checkpoint file
@@ -66,9 +82,10 @@ class XLMRobertaEmbeddings(nn.Module):
 
         # End copy
         self.padding_idx = config.pad_token_id
-        self.position_embeddings = nn.Embedding(config.max_position_embeddings,
-                                                config.hidden_size,
-                                                padding_idx=self.padding_idx)
+        self.position_embeddings = VocabParallelEmbedding(
+            config.max_position_embeddings,
+            config.hidden_size,
+            quant_config=quant_config)
 
     def forward(self,
                 input_ids=None,
@@ -183,7 +200,11 @@ class XLMRobertaSelfAttention(nn.Module):
         past_key_value: Optional[Tuple[Tuple[torch.FloatTensor]]] = None,
         output_attentions: Optional[bool] = False,
     ) -> Tuple[torch.Tensor]:
+
+        shape = hidden_states.shape
+        hidden_states = hidden_states.reshape(-1, shape[2])
         qkv, _ = self.qkv_proj(hidden_states)
+        qkv = qkv.reshape(shape[0], shape[1], -1)
         mixed_query_layer, _key_layer, _value_layer = qkv.chunk(chunks=3,
                                                                 dim=-1)
 
@@ -287,7 +308,10 @@ class XLMRobertaSelfOutput(nn.Module):
 
     def forward(self, hidden_states: torch.Tensor,
                 input_tensor: torch.Tensor) -> torch.Tensor:
+        shape = hidden_states.shape
+        hidden_states = hidden_states.reshape(-1, shape[2])
         hidden_states, _ = self.dense(hidden_states)
+        hidden_states = hidden_states.reshape(shape[0], shape[1], -1)
         hidden_states = self.LayerNorm(hidden_states + input_tensor)
         return hidden_states
 
@@ -377,7 +401,10 @@ class XLMRobertaIntermediate(nn.Module):
             self.intermediate_act_fn = config.hidden_act
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
+        shape = hidden_states.shape
+        hidden_states = hidden_states.reshape(-1, shape[-1])
         hidden_states, _ = self.dense(hidden_states)
+        hidden_states = hidden_states.reshape(shape[0], shape[1], -1)
         hidden_states = self.intermediate_act_fn(hidden_states)
         return hidden_states
 
@@ -401,7 +428,10 @@ class XLMRobertaOutput(nn.Module):
 
     def forward(self, hidden_states: torch.Tensor,
                 input_tensor: torch.Tensor) -> torch.Tensor:
+        shape = hidden_states.shape
+        hidden_states = hidden_states.reshape(-1, shape[2])
         hidden_states, _ = self.dense(hidden_states)
+        hidden_states = hidden_states.reshape(shape[0], shape[1], -1)
         hidden_states = self.LayerNorm(hidden_states + input_tensor)
         return hidden_states
 
@@ -649,7 +679,8 @@ class XLMRobertaModel(XLMRobertaPreTrainedModel):
         super().__init__(config)
         self.config = config
 
-        self.embeddings = XLMRobertaEmbeddings(config)
+        self.embeddings = XLMRobertaEmbeddings(config,
+                                               quant_config=quant_config)
         self.encoder = XLMRobertaEncoder(config, quant_config=quant_config)
 
         self.pooler = XLMRobertaPooler(config) if add_pooling_layer else None

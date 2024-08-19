@@ -33,22 +33,28 @@ ACT_ORDER_OPTS = [False, True]
 K_FULL_OPTS = [False, True]
 USE_FP32_REDUCE_OPTS = [False, True]
 
-MARLIN_K_CHUNKS = [128]
-MARLIN_N_CHUNKS = [64, 128, 256]
+MARLIN_K_CHUNKS = [4096]
+MARLIN_N_CHUNKS = [4096]
 
 MARLIN_24_K_CHUNKS = [128]
 MARLIN_24_N_CHUNKS = [512]
 
 MNK_FACTORS = [
-    (1, 1, 1),
-    (1, 4, 8),
-    (1, 7, 5),
-    (13, 17, 67),
-    (26, 37, 13),
-    (67, 13, 11),
+    (4096, 1, 1),
+    (4096, 1, 1),
+    (4096, 1, 1),
+    (4096, 1, 1),
+    (4096, 1, 1),
+    (4096, 1, 1),
+    (4096, 1, 1),
+    #(1024, 4, 8),
+    #(1024, 7, 5),
+    #(1024, 17, 67),
+    #(1024, 37, 13),
+    #(1024, 13, 11),
 ]
 
-DTYPES = [torch.float16, torch.bfloat16]
+DTYPES = [torch.bfloat16]
 
 
 def compute_max_diff(output, output_ref):
@@ -321,6 +327,10 @@ def test_fp8_marlin_gemm(
     size_k = k_chunk * k_factor
     size_n = n_chunk * n_factor
 
+    #size_m = 2048
+    #size_k = 4096
+    #size_n = 4096
+
     print(f"MNK = {size_m} {size_n} {size_k}")
     print(f"groupsize = {group_size}")
 
@@ -353,6 +363,8 @@ def test_fp8_marlin_gemm(
     workspace = MarlinWorkspace(size_n, GPTQ_MARLIN_MIN_THREAD_N,
                                 GPTQ_MARLIN_MAX_PARALLEL)
 
+    import time
+    time1 = time.time()
     output = ops.fp8_marlin_gemm(
         a=a_input,
         b_q_weight=marlin_qweight,
@@ -363,10 +375,13 @@ def test_fp8_marlin_gemm(
         size_n=b_weight.shape[1],
         size_k=a_input.shape[1],
     )
-    output_ref = torch.matmul(a_input, b_weight)
+    torch.cuda.synchronize()
+    time2 = time.time()
+    output_ref = torch.mm(a_input, b_weight)
 
     torch.cuda.synchronize()
-
+    time3 = time.time()
+    print(f"\t\t\t\t{(time2 - time1)/(time3 - time2):.10f}")
     max_diff = compute_max_diff(output, output_ref)
     print("max_diff = {}".format(max_diff))
 
