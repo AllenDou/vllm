@@ -1,0 +1,20 @@
+# for 7B model
+
+checkpoint: /root/checkpoint-219/ from /mnt/data/Results/ceyu_output/Themis_2_7B/KD/checkpoint/dlc-7B-lr-2e-5-bs-1-epoch-3-base_05_1_qwen_JSON32best_seqkd_top10/checkpoint-219/
+
+server:
+python3 -m vllm.entrypoints.openai.api_server --model ceyu-Themis_2-7B-awq  --served-model-name modelx --disable-log-stats --quantization awq --max-num-seqs 64 --max-model-len 8192 --tensor-parallel-size 1 
+
+client:
+sh /root/openai_completion2.sh
+
+
+# for 32B model
+checkpoint: /root/checkpoint-109/ from /mnt/data/Results/ceyu_output/Themis_1_5_32B/score_all_json_0807/checkpoint/dlc-32B-lr-2e-5-bs-1-epoch-3-base_with_example/checkpoint-109/
+
+server: # --tensor-parallel-size 2 when gpu memory is not enough.
+python3 -m vllm.entrypoints.openai.api_server --model ceyu-Themis_1_5_32B-awq/  --served-model-name modelx --disable-log-stats --quantization awq --max-num-seqs 64 --max-model-len 8192 --tensor-parallel-size 2
+
+client:
+sh /root/openai_completion2.sh
+
