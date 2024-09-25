@@ -5,7 +5,7 @@ from transformers import AutoTokenizer
 #quant_path = 'vicuna-7b-v1.5-awq'
 model_path = 'Qwen/Qwen2.5-7B'
 quant_path = 'Qwen2.5-7B-awq'
-quant_config = { "zero_point": True, "q_group_size": 128, "w_bit": 4, "version": "GEMM" }
+quant_config = { "zero_point": True, "q_group_size": 32, "w_bit": 4, "version": "GEMM" }
 
 # Load model
 model = AutoAWQForCausalLM.from_pretrained(model_path)
