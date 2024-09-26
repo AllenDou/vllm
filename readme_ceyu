@@ -1,20 +1,23 @@
-# for 7B model
+#
 
-checkpoint: /root/checkpoint-219/ from /mnt/data/Results/ceyu_output/Themis_2_7B/KD/checkpoint/dlc-7B-lr-2e-5-bs-1-epoch-3-base_05_1_qwen_JSON32best_seqkd_top10/checkpoint-219/
+# requirements
+1. L20 * 1
+2. vllm latest version
 
-server:
-python3 -m vllm.entrypoints.openai.api_server --model ceyu-Themis_2-7B-awq  --served-model-name modelx --disable-log-stats --quantization awq --max-num-seqs 64 --max-model-len 8192 --tensor-parallel-size 1 
-
-client:
-sh /root/openai_completion2.sh
+# quantization qwen2.5-{7B, 32B}
+python3 awq_quantize_qwen25_32b.py # default q_group_size is 128, 32 is better
+python3 awq_quantize_qwen25_7b.py
 
 
-# for 32B model
-checkpoint: /root/checkpoint-109/ from /mnt/data/Results/ceyu_output/Themis_1_5_32B/score_all_json_0807/checkpoint/dlc-32B-lr-2e-5-bs-1-epoch-3-base_with_example/checkpoint-109/
+#Serving
+#normal mode
+python3 -m vllm.entrypoints.openai.api_server --model /root/Qwen2.5-32B-awq --tensor-parallel-size 1 --served-model-name modelx --disable-log-stats --max-model-len 8192
 
-server: # --tensor-parallel-size 2 when gpu memory is not enough.
-python3 -m vllm.entrypoints.openai.api_server --model ceyu-Themis_1_5_32B-awq/  --served-model-name modelx --disable-log-stats --quantization awq --max-num-seqs 64 --max-model-len 8192 --tensor-parallel-size 2
+# speculative decoding mode
+python3 -m vllm.entrypoints.openai.api_server --model /root/Qwen2.5-32B-awq --speculative-model /root/Qwen2.5-7B-awq --tensor-parallel-size 1 --served-model-name modelx --disable-log-stats --use-v2-block-manager --num-speculative-tokens 4 --max-model-len 8192
 
-client:
-sh /root/openai_completion2.sh
+
+# client
+sh openai_completion2.sh
+
 
