@@ -1,0 +1,14 @@
+
+# run t-head vllm image
+docker run -it -p8000:8000 --privileged --ipc=host --ulimit memlock=1 --ulimit stack=67108864 -v /root/zixiao:/root/zixiao -v /root/.gitconfig:/root/.gitconfig  registry.cn-huhehaote.aliyuncs.com/aisw/llm:1.3.3-pytorch2.3.1-cuda12.3-ubuntu22.04-py310 /bin/bash
+
+# run vllm server
+python3 -m vllm.entrypoints.openai.api_server --model /root/zixiao/opt-125 --tensor-parallel-size 1 --served-model-name modelx --disable-log-stats --disable-custom-all-reduce
+
+# run benchmark
+python3 benchmark_throughput.py --model www --backend vllm --input-len 512 --output-len 256 --num-prompts 1000 --tensor-parallel 1
+
+# run vllm official image
+docker run -it -v /root/zixiao:/root/zixiao --gpus all --entrypoint="" registry.cn-huhehaote.aliyuncs.com/dsexperiment/vllm-openai:v0.6.4.post1 /bin/bash
+
+
