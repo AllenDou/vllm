@@ -44,6 +44,7 @@ class CompressedTensorsMoEMethod(FusedMoEMethodBase):
         input_quant = quant_config.target_scheme_map["Linear"].get(
             "input_activations")
 
+        import pdb;pdb.set_trace()
         if quant_config._is_wNa16_group_channel(weight_quant, input_quant):
             return CompressedTensorsWNA16MoEMethod(quant_config)
         elif quant_config._is_fp8_w8a8(weight_quant, input_quant):
