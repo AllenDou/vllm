@@ -21,15 +21,18 @@
 # =============================================================================
 
 # Configuration - can be overridden via environment variables
-MODEL=${MODEL:-meta-llama/Llama-3.1-8B-Instruct}
+#MODEL=${MODEL:-meta-llama/Llama-3.1-8B-Instruct}
+MODEL=/nasmnt/models/Llama-3.2-1B-Instruct/
 TIMEOUT_SECONDS=${TIMEOUT_SECONDS:-1200}
 PROXY_PORT=${PROXY_PORT:-30001}
 
 # Default 1P3D configuration (1 Prefill + 3 Decode)
 PREFILL_GPUS=${PREFILL_GPUS:-0}
-DECODE_GPUS=${DECODE_GPUS:-1,2,3}
+#DECODE_GPUS=${DECODE_GPUS:-1,2,3}
+DECODE_GPUS=${DECODE_GPUS:-1}
 PREFILL_PORTS=${PREFILL_PORTS:-20003}
-DECODE_PORTS=${DECODE_PORTS:-20005,20007,20009} 
+#DECODE_PORTS=${DECODE_PORTS:-20005,20007,20009}
+DECODE_PORTS=${DECODE_PORTS:-20005}
 
 echo "Warning: P2P NCCL disaggregated prefill XpYd support for vLLM v1 is experimental and subject to change."
 echo ""
@@ -123,7 +126,7 @@ wait_for_server() {
 
 main() {
     check_required_files
-    check_hf_token
+    #check_hf_token
     check_num_gpus
     ensure_python_library_installed pandas
     ensure_python_library_installed datasets
@@ -172,11 +175,11 @@ main() {
         --tensor-parallel-size 1 \
         --seed 1024 \
         --dtype float16 \
-        --max-model-len 10000 \
-        --max-num-batched-tokens 10000 \
-        --max-num-seqs 256 \
+        --max-model-len 200 \
+        --max-num-batched-tokens 200 \
+        --max-num-seqs 32 \
         --trust-remote-code \
-        --gpu-memory-utilization 0.9 \
+        --gpu-memory-utilization 0.8 \
         --disable-log-request \
         --kv-transfer-config \
         "{\"kv_connector\":\"P2pNcclConnector\",\"kv_role\":\"kv_producer\",\"kv_buffer_size\":\"1e1\",\"kv_port\":\"$kv_port\",\"kv_connector_extra_config\":{\"proxy_ip\":\"0.0.0.0\",\"proxy_port\":\"$PROXY_PORT\",\"http_port\":\"$port\",\"send_type\":\"PUT_ASYNC\",\"nccl_num_channels\":\"16\"}}" > prefill$((i+1)).log 2>&1 &
@@ -201,9 +204,9 @@ main() {
         --tensor-parallel-size 1 \
         --seed 1024 \
         --dtype float16 \
-        --max-model-len 10000 \
-        --max-num-batched-tokens 10000 \
-        --max-num-seqs 256 \
+        --max-model-len 200 \
+        --max-num-batched-tokens 200 \
+        --max-num-seqs 32 \
         --trust-remote-code \
         --gpu-memory-utilization 0.7 \
         --disable-log-request \
@@ -227,14 +230,13 @@ main() {
 
     echo ""
     echo "All servers are up. Starting benchmark..."
-
     # =============================================================================
     # Run Benchmark
     # =============================================================================
     cd ../../../benchmarks/
     python3 benchmark_serving.py --port 10001 --seed $(date +%s) \
         --model $MODEL \
-        --dataset-name random --random-input-len 7500 --random-output-len 200 \
+        --dataset-name random --random-input-len 20 --random-output-len 100 \
         --num-prompts 200 --burstiness 100 --request-rate 2 | tee benchmark.log
 
     echo "Benchmarking done. Cleaning up..."
