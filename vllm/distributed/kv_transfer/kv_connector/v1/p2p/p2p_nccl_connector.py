@@ -115,6 +115,8 @@ class P2pNcclConnector(KVConnectorBase_V1):
         # Only consumer/decode loads KV Cache
         if self.is_producer:
             return
+        
+        #import remote_pdb,os; remote_pdb.RemotePdb("0.0.0.0", os.getpid()%65536, patch_stdstreams=True).set_trace()
 
         assert self.p2p_nccl_engine is not None
 
@@ -242,6 +244,8 @@ class P2pNcclConnector(KVConnectorBase_V1):
         # Only producer/prefill saves KV Cache
         if not self.is_producer:
             return
+
+        #import remote_pdb,os; remote_pdb.RemotePdb("0.0.0.0", os.getpid()%65536, patch_stdstreams=True).set_trace()
 
         assert self.p2p_nccl_engine is not None
 
