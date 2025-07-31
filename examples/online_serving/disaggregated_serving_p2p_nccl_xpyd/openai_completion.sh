@@ -5,7 +5,7 @@ curl http://localhost:10001/v1/completions \
         "prompt": [
         "NewYork is a "
         ],
-        "max_tokens": 20,
+        "max_tokens": 1,
         "stream": true,
         "temperature": 0
     }' 
