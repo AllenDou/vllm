@@ -1497,7 +1497,7 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
         scheduler_output: "SchedulerOutput",
         intermediate_tensors: Optional[IntermediateTensors] = None,
     ) -> Union[ModelRunnerOutput, IntermediateTensors]:
-        print("gpu_model_runner.py execute_model()")
+        #print("gpu_model_runner.py execute_model()")
         #import remote_pdb,os; remote_pdb.RemotePdb("0.0.0.0", os.getpid()%65536, patch_stdstreams=True).set_trace()
         self._update_states(scheduler_output)
         if not scheduler_output.total_num_scheduled_tokens:
