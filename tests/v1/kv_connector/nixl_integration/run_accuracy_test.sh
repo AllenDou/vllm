@@ -24,7 +24,7 @@ trap 'kill $(jobs -pr)' SIGINT SIGTERM EXIT
 wait_for_server() {
   local port=$1
   timeout 1200 bash -c "
-    until curl -s localhost:${port}/v1/completions > /dev/null; do
+    until curl -s localhost:${port}/metrics > /dev/null; do
       sleep 1
     done" && return 0 || return 1
 }
