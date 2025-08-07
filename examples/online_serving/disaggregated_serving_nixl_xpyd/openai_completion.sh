@@ -3,7 +3,7 @@ curl http://localhost:10001/v1/completions \
     -d '{
         "model": "/nasmnt/models/Llama-3.2-1B-Instruct/",
         "prompt": [
-        "NewYork is a "
+        "The best part about working on vLLM is that I got to meet so many people across various different organizations like UCB, Google, and Meta which means"
         ],
         "max_tokens": 1,
         "stream": true,
