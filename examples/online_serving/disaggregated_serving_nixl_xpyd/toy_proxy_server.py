@@ -1,1 +1,0 @@
-../../../tests/v1/kv_connector/nixl_integration/toy_proxy_server.py

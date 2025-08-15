@@ -1,1 +1,0 @@
-../disaggregated_serving_p2p_nccl_xpyd/benchmark.sh
