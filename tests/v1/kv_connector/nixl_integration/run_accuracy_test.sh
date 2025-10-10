@@ -56,7 +56,7 @@ trap 'kill $(jobs -pr)' SIGINT SIGTERM EXIT
 wait_for_server() {
   local port=$1
   timeout 1200 bash -c "
-    until curl -s localhost:${port}/v1/completions > /dev/null; do
+    until curl -s localhost:${port}/metrics > /dev/null; do
       sleep 1
     done" && return 0 || return 1
 }
@@ -130,7 +130,8 @@ run_tests_for_model() {
     vllm serve $model_name \
     --port $PORT \
     --enforce-eager \
-    --gpu-memory-utilization 0.2 \
+    --disable-log-requests \
+    --gpu-memory-utilization 0.8 \
     --tensor-parallel-size $PREFILLER_TP_SIZE \
     --kv-transfer-config '$KV_CONFIG'"
 
@@ -171,7 +172,7 @@ run_tests_for_model() {
     vllm serve $model_name \
     --port $PORT \
     --enforce-eager \
-    --gpu-memory-utilization 0.2 \
+    --gpu-memory-utilization 0.8 \
     --tensor-parallel-size $DECODER_TP_SIZE \
     --kv-transfer-config '$KV_CONFIG'"
 
@@ -200,7 +201,7 @@ run_tests_for_model() {
   done
 
   # Build the command for the proxy server with all the hosts and ports
-  PROXY_CMD="python ${GIT_ROOT}/tests/v1/kv_connector/nixl_integration/toy_proxy_server.py --port 8192"
+  PROXY_CMD="python3 ${GIT_ROOT}/tests/v1/kv_connector/nixl_integration/toy_proxy_server.py --port 8192"
 
   # Add all prefill hosts and ports
   PROXY_CMD+=" --prefiller-hosts ${PREFILL_HOSTS[@]}"
@@ -219,7 +220,7 @@ run_tests_for_model() {
 
   # Run lm eval for this model
   echo "Running tests for $model_name"
-  TEST_MODEL=$model_name python -m pytest -s -x ${GIT_ROOT}/tests/v1/kv_connector/nixl_integration/test_accuracy.py
+  TEST_MODEL=$model_name python3 -m pytest -s -x ${GIT_ROOT}/tests/v1/kv_connector/nixl_integration/test_accuracy.py
 
   # Clean up before running next model
   cleanup_instances

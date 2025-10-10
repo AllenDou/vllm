@@ -114,12 +114,17 @@ class P2pNcclConnector(KVConnectorBase_V1):
         # Only consumer/decode loads KV Cache
         if self.is_producer:
             return
+        
+        #import remote_pdb,os; remote_pdb.RemotePdb("0.0.0.0", os.getpid()%65536, patch_stdstreams=True).set_trace()
+        #print(f"start_load_kv")
 
         assert self.p2p_nccl_engine is not None
 
         attn_metadata = forward_context.attn_metadata
         if attn_metadata is None:
+            #print("attn_metadata is none")
             return
+        #print("attn_metadata is not none")
 
         def inject_kv_into_layer(
             layer: torch.Tensor,
@@ -206,6 +211,7 @@ class P2pNcclConnector(KVConnectorBase_V1):
 
                 layer = kv_cache[forward_context.virtual_engine]
 
+                #print(f"recv_tensor")
                 kv_cache = self.p2p_nccl_engine.recv_tensor(
                     request.request_id + "#" + layer_name, remote_address
                 )
@@ -250,6 +256,9 @@ class P2pNcclConnector(KVConnectorBase_V1):
         # Only producer/prefill saves KV Cache
         if not self.is_producer:
             return
+
+        #import remote_pdb,os; remote_pdb.RemotePdb("0.0.0.0", os.getpid()%65536, patch_stdstreams=True).set_trace()
+        #print(f"save_kv_layer")
 
         assert self.p2p_nccl_engine is not None
 
