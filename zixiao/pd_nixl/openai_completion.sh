@@ -6,7 +6,7 @@ curl http://localhost:10001/v1/completions \
     -d "{
         \"model\": \"/nasmnt/models/Llama-3.2-1B-Instruct/\",
         \"prompt\": [\"$prompt\"],
-        \"max_tokens\": 1,
+        \"max_tokens\": 100,
         \"stream\": true,
         \"temperature\": 0
     }"
