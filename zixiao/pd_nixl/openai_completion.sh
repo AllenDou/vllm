@@ -1,3 +1,4 @@
+#!/bin/bash
 
 prompt="now is `date`, The best part about working on vLLM is that I got to meet so many people across various different organizations like UCB, Google, and Meta which means"
 echo $prompt

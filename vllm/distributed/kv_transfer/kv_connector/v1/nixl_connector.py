@@ -153,6 +153,7 @@ class NixlConnector(KVConnectorBase_V1):
         assert vllm_config.kv_transfer_config.engine_id is not None
         self.engine_id: EngineId = vllm_config.kv_transfer_config.engine_id
 
+
         if role == KVConnectorRole.SCHEDULER:
             self.connector_scheduler: NixlConnectorScheduler | None = (
                 NixlConnectorScheduler(vllm_config, self.engine_id)
@@ -192,9 +193,10 @@ class NixlConnector(KVConnectorBase_V1):
         self, request: "Request", num_computed_tokens: int
     ) -> tuple[int | None, bool]:
         assert self.connector_scheduler is not None
-        return self.connector_scheduler.get_num_new_matched_tokens(
+        ret = self.connector_scheduler.get_num_new_matched_tokens(
             request, num_computed_tokens
         )
+        return ret
 
     def update_state_after_alloc(
         self, request: "Request", blocks: "KVCacheBlocks", num_external_tokens: int
@@ -1297,6 +1299,7 @@ class NixlConnectorWorker:
         The scheduler process (via the MultiprocExecutor) will use this output
         to track which workers are done.
         """
+        if os.getenv("ZIXIAO_DEBUG", "") == 'true': import remote_pdb; remote_pdb.RemotePdb("0.0.0.0", os.getpid()%65536, patch_stdstreams=False).set_trace()
         done_sending = self._get_new_notifs()
         done_recving = self._pop_done_transfers(self._recving_transfers)
 
@@ -1427,6 +1430,7 @@ class NixlConnectorWorker:
         Start loading by triggering non-blocking nixl_xfer.
         We check for these trnxs to complete in each step().
         """
+        if os.getenv("ZIXIAO_DEBUG", "") == 'true': import remote_pdb; remote_pdb.RemotePdb("0.0.0.0", os.getpid()%65536, patch_stdstreams=False).set_trace()
         for req_id, meta in metadata.reqs_to_recv.items():
             remote_engine_id = meta.remote_engine_id
             logger.debug(

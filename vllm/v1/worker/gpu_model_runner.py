@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
-
+import os
 import gc
 import itertools
 import time
@@ -2396,6 +2396,7 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
         Returns:
             Model output tensor
         """
+        if os.getenv("ZIXIAO_DEBUG", "") == 'true': import remote_pdb; remote_pdb.RemotePdb("0.0.0.0", os.getpid()%65536, patch_stdstreams=False).set_trace()
         return self.model(
             input_ids=input_ids,
             positions=positions,

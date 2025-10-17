@@ -26,7 +26,7 @@ from vllm.v1.outputs import (
     KVConnectorOutput,
     ModelRunnerOutput,
 )
-
+import os
 if TYPE_CHECKING:
     from vllm.v1.core.sched.output import SchedulerOutput
 
@@ -122,8 +122,10 @@ class KVConnectorModelRunnerMixin:
         # Do this here to save a collective_rpc.
         kv_connector.start_load_kv(get_forward_context())
         try:
+            #if os.path.exists("/root/haha"): import remote_pdb; remote_pdb.RemotePdb("0.0.0.0", os.getpid()%65536, patch_stdstreams=False).set_trace()
             yield output
         finally:
+            #if os.path.exists("/root/haha"): import remote_pdb; remote_pdb.RemotePdb("0.0.0.0", os.getpid()%65536, patch_stdstreams=False).set_trace()
             if wait_for_save:
                 kv_connector.wait_for_save()
 
