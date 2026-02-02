@@ -995,6 +995,7 @@ _MULTIMODAL_EXAMPLE_MODELS = {
     ),
     "FunASRForConditionalGeneration": _HfExamplesInfo(
         "allendou/Fun-ASR-Nano-2512-vllm",
+        is_available_online=False,
     ),
     # [Cross-encoder]
     "JinaVLForRanking": _HfExamplesInfo("jinaai/jina-reranker-m0"),
