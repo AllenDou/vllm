@@ -53,3 +53,4 @@ model-hosting-container-standards >= 0.1.13, < 1.0.0
 mcp
 grpcio
 grpcio-reflection
+librosa==0.11.0
