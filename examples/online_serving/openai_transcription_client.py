@@ -125,8 +125,8 @@ def main(args):
     winning_call = "/root/asr_example.wav"
 
     # Modify OpenAI's API key and API base to use vLLM's API server.
-    openai_api_key = "EMPTY"
-    openai_api_base = "http://localhost:8000/v1"
+    openai_api_key = args.token
+    openai_api_base = args.url
     client = OpenAI(
         api_key=openai_api_key,
         base_url=openai_api_base,
@@ -179,6 +179,18 @@ if __name__ == "__main__":
         type=float,
         default=1.3,
         help="repetition penalty",
+    )
+    parser.add_argument(
+        "--token",
+        type=str,
+        default="EMPTY",
+        help="token",
+    )
+    parser.add_argument(
+        "--url",
+        type=str,
+        default="http://localhost:8000/v1",
+        help="url",
     )
     args = parser.parse_args()
     main(args)
