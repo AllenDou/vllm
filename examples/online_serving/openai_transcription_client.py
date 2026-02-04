@@ -144,23 +144,23 @@ def main(args):
     )
 
     # Run the asynchronous function
-    if "openai" in model:
-        client = AsyncOpenAI(
-            api_key=openai_api_key,
-            base_url=openai_api_base,
+    # if "openai" in model:
+    client = AsyncOpenAI(
+        api_key=openai_api_key,
+        base_url=openai_api_base,
+    )
+    asyncio.run(
+        stream_openai_response(
+            args.audio_path if args.audio_path else winning_call, client, model
         )
-        asyncio.run(
-            stream_openai_response(
-                args.audio_path if args.audio_path else winning_call, client, model
-            )
-        )
-    else:
-        stream_api_response(
-            args.audio_path if args.audio_path else winning_call,
-            model,
-            openai_api_base,
-            openai_api_key,
-        )
+    )
+    # else:
+    stream_api_response(
+        args.audio_path if args.audio_path else winning_call,
+        model,
+        openai_api_base,
+        openai_api_key,
+    )
 
 
 if __name__ == "__main__":
