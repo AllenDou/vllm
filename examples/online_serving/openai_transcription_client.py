@@ -23,7 +23,7 @@ import asyncio
 
 from openai import AsyncOpenAI, OpenAI
 
-from vllm.assets.audio import AudioAsset
+# from vllm.assets.audio import AudioAsset
 
 
 def sync_openai(
@@ -36,7 +36,7 @@ def sync_openai(
         transcription = client.audio.transcriptions.create(
             file=f,
             model=model,
-            language="en",
+            language="zh",
             response_format="json",
             temperature=0.0,
             # Additional sampling params not provided by OpenAI API.
@@ -57,7 +57,7 @@ async def stream_openai_response(audio_path: str, client: AsyncOpenAI, model: st
         transcription = await client.audio.transcriptions.create(
             file=f,
             model=model,
-            language="en",
+            language="zh",
             response_format="json",
             temperature=0.0,
             # Additional sampling params not provided by OpenAI API.
@@ -91,7 +91,7 @@ def stream_api_response(audio_path: str, model: str, openai_api_base: str):
         data = {
             "stream": "true",
             "model": model,
-            "language": "en",
+            "language": "zh",
             "response_format": "json",
         }
 
@@ -116,8 +116,10 @@ def stream_api_response(audio_path: str, model: str, openai_api_base: str):
 
 
 def main(args):
-    mary_had_lamb = str(AudioAsset("mary_had_lamb").get_local_path())
-    winning_call = str(AudioAsset("winning_call").get_local_path())
+    # mary_had_lamb = str(AudioAsset("mary_had_lamb").get_local_path())
+    # winning_call = str(AudioAsset("winning_call").get_local_path())
+    mary_had_lamb = "/root/asr_example.wav"
+    winning_call = "/root/asr_example.wav"
 
     # Modify OpenAI's API key and API base to use vLLM's API server.
     openai_api_key = "EMPTY"
