@@ -75,7 +75,7 @@ async def stream_openai_response(audio_path: str, client: AsyncOpenAI, model: st
     print()  # Final newline after stream ends
 
 
-def stream_api_response(audio_path: str, model: str, openai_api_base: str):
+def stream_api_response(audio_path: str, model: str, openai_api_base: str, token: str):
     """
     Perform streaming transcription using raw HTTP requests to the vLLM API server.
     """
@@ -85,7 +85,10 @@ def stream_api_response(audio_path: str, model: str, openai_api_base: str):
     import requests
 
     api_url = f"{openai_api_base}/audio/transcriptions"
-    headers = {"User-Agent": "Transcription-Client"}
+    headers = {
+        "User-Agent": "Transcription-Client",
+        "Authorization": f"Bearer {token}",
+    }
     with open(audio_path, "rb") as f:
         files = {"file": (os.path.basename(audio_path), f)}
         data = {
@@ -156,6 +159,7 @@ def main(args):
             args.audio_path if args.audio_path else winning_call,
             model,
             openai_api_base,
+            openai_api_key,
         )
 
 
